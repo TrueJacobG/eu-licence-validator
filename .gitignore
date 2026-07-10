@@ -1,0 +1,26 @@
+# WebAssembly artifacts
+core/core.wasm
+bindings/*/wasm/core.wasm
+bindings/java/src/main/resources/core.wasm
+
+# Go
+core/coverage.out
+bindings/go/coverage.out
+
+# Node
+bindings/node/node_modules/
+bindings/node/*.tgz
+
+# Python
+bindings/python/__pycache__/
+bindings/python/*.egg-info/
+bindings/python/.venv/
+bindings/python/dist/
+
+# Ruby
+bindings/ruby/.bundle/
+bindings/ruby/vendor/
+bindings/ruby/*.gem
+
+# Java
+bindings/java/target/

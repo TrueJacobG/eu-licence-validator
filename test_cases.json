@@ -1,0 +1,35 @@
+[
+  { "plate": "WPI 1234X", "country": "PL", "expected": true },
+  { "plate": "WPI 12345", "country": "PL", "expected": true },
+  { "plate": "KRK 12345", "country": "PL", "expected": true },
+  { "plate": "WPI1234X", "country": "PL", "expected": true },
+  { "plate": "WX 12345", "country": "PL", "expected": true },
+  { "plate": "W1 12345", "country": "PL", "expected": false },
+  { "plate": "WPI 123456", "country": "PL", "expected": false },
+  { "plate": "ABCD 1234", "country": "PL", "expected": false },
+  { "plate": "", "country": "PL", "expected": false },
+
+  { "plate": "B-AB 1234", "country": "DE", "expected": true },
+  { "plate": "M AB 123", "country": "DE", "expected": true },
+  { "plate": "MAB1234", "country": "DE", "expected": true },
+  { "plate": "SUB-AB 1234", "country": "DE", "expected": true },
+  { "plate": "B AB 1234E", "country": "DE", "expected": true },
+  { "plate": "B AB 1234H", "country": "DE", "expected": true },
+  { "plate": "B AB 12345", "country": "DE", "expected": false },
+  { "plate": "1234 AB", "country": "DE", "expected": false },
+  { "plate": "ABCD EF 1234", "country": "DE", "expected": false },
+
+  { "plate": "AA-123-AA", "country": "FR", "expected": true },
+  { "plate": "AA 123 AA", "country": "FR", "expected": true },
+  { "plate": "AA123AA", "country": "FR", "expected": true },
+  { "plate": "AB-123-CD", "country": "FR", "expected": true },
+  { "plate": "AA-123-SS", "country": "FR", "expected": false },
+  { "plate": "AA-123-WW", "country": "FR", "expected": false },
+  { "plate": "AI-123-AA", "country": "FR", "expected": false },
+  { "plate": "AA-123-AI", "country": "FR", "expected": false },
+  { "plate": "AA-12-AA", "country": "FR", "expected": false },
+  { "plate": "AA-1234-AA", "country": "FR", "expected": false },
+
+  { "plate": "WPI 1234X", "country": "XX", "expected": false },
+  { "plate": "WPI 1234X", "country": "", "expected": false }
+]
