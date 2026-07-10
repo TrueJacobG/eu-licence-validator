@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -169,8 +170,6 @@ jobs:
         with:
           node-version: "22"
           registry-url: https://registry.npmjs.org
-      - name: Ensure npm CLI supports trusted publishing
-        run: npm install -g npm@latest
       - uses: actions/download-artifact@v4
         with:
           name: core-wasm
@@ -231,11 +230,14 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   release-ruby:
-    name: Release → RubyGems
+    name: Release → RubyGems (OIDC)
     needs: [build-and-test, tag-go-modules]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
@@ -251,17 +253,14 @@ jobs:
           VERSION: ${{ needs.build-and-test.outputs.version }}
         run: sed -i "s/VERSION = .*/VERSION = \"${VERSION}\"/" lib/eu_licence_validator/version.rb
         working-directory: bindings/ruby
-      - run: |
-          mkdir -p $HOME/.gem
-          printf -- "---\n:rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
       - run: gem build *.gemspec
         working-directory: bindings/ruby
-      - run: gem push *.gem
-        working-directory: bindings/ruby
+      - uses: rubygems/release-gem@v1
+        with:
+          setup-gem: true
 
   release-java:
-    name: Release → Maven Central
+    name: Release → GitHub Packages (Maven)
     needs: [build-and-test, tag-go-modules]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -272,11 +271,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          server-id: central
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+          server-id: github
+          server-username: GITHUB_USERNAME
+          server-password: GITHUB_TOKEN
       - uses: actions/download-artifact@v4
         with:
           name: core-wasm
@@ -287,12 +284,11 @@ jobs:
           VERSION: ${{ needs.build-and-test.outputs.version }}
         run: mvn -B versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false
         working-directory: bindings/java
-      - run: mvn -B -DskipTests -Ppublish deploy
+      - run: mvn -B -DskipTests deploy
         working-directory: bindings/java
         env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   github-release:
     name: GitHub Release

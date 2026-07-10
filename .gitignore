@@ -25,3 +25,6 @@ bindings/ruby/*.gem
 
 # Java
 bindings/java/target/
+
+# internal docs
+/internal-docs

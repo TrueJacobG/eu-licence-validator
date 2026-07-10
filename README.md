@@ -15,7 +15,7 @@ Wasm) for maximum performance.
 
 | Language                | Package                                                  | Distribution          |
 | ----------------------- | -------------------------------------------------------- | --------------------- |
-| TypeScript / JavaScript | `@truejacobg/eu-licence-validator` | npm / GitHub Packages |
+| TypeScript / JavaScript | `@truejacobg/eu-licence-validator`                       | npm / GitHub Packages |
 | Python                  | `eu-licence-validator`                                   | PyPI                  |
 | Ruby                    | `eu-licence-validator`                                   | RubyGems              |
 | Java                    | `com.github.truejacobg:eu-licence-validator`             | Maven Central         |
@@ -90,9 +90,9 @@ Every binding exposes the same API:
 import { init, isValid } from "@truejacobg/eu-licence-validator";
 
 await init(); // initialize the Wasm runtime once
-isValid("WPI 1234X", "PL");  // true  (sync after init)
-isValid("AA-123-SS", "FR");  // false
-isValid("B-AB 1234", "DE");  // true
+isValid("WPI 1234X", "PL"); // true  (sync after init)
+isValid("AA-123-SS", "FR"); // false
+isValid("B-AB 1234", "DE"); // true
 
 // Types are included:
 // function isValid(plate: string, countryCode: string): boolean
@@ -171,9 +171,9 @@ eu-licence-validator/
 └── .github/workflows/        # ci · dev-publish · release
 ```
 
-## Other
+## Python - Pypi
 
-[https://test.pypi.org/project/eu-licence-validator/](https://test.pypi.org/project/eu-licence-validator/)
+[pypi](https://pypi.org/project/eu-licence-validator/)
 
 ## Contributing
 
