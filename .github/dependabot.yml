@@ -3,34 +3,34 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "gomod"
     directory: "/core"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "gomod"
     directory: "/bindings/go"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "npm"
     directory: "/bindings/js"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "pip"
     directory: "/bindings/python"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "bundler"
     directory: "/bindings/ruby"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "maven"
     directory: "/bindings/java"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
