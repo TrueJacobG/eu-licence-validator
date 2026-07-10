@@ -1,6 +1,6 @@
 {
   "name": "@truejacobg/eu-licence-validator",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "European licence plate validation. Single Go core compiled to WebAssembly, bundled for Node.js.",
   "license": "MIT",
   "author": "TrueJacobG",
@@ -8,10 +8,13 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TrueJacobG/eu-licence-validator.git",
-    "directory": "bindings/node"
+    "directory": "bindings/js"
   },
   "bugs": {
     "url": "https://github.com/TrueJacobG/eu-licence-validator/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "licence",
