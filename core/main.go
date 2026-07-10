@@ -1,8 +1,23 @@
 package main
 
-import "unsafe"
+import (
+	"sync"
+	"unsafe"
+)
 
-var allocs = map[int32][]byte{}
+var (
+	allocsMu sync.Mutex
+	allocs   map[int32][]byte
+)
+
+func allocsMap() map[int32][]byte {
+	allocsMu.Lock()
+	defer allocsMu.Unlock()
+	if allocs == nil {
+		allocs = make(map[int32][]byte)
+	}
+	return allocs
+}
 
 //export alloc
 func alloc(size int32) int32 {
@@ -11,13 +26,17 @@ func alloc(size int32) int32 {
 	}
 	buf := make([]byte, size)
 	ptr := int32(uintptr(unsafe.Pointer(&buf[0])))
-	allocs[ptr] = buf
+	allocsMap()[ptr] = buf
 	return ptr
 }
 
 //export dealloc
 func dealloc(ptr int32) {
-	delete(allocs, ptr)
+	allocsMu.Lock()
+	defer allocsMu.Unlock()
+	if allocs != nil {
+		delete(allocs, ptr)
+	}
 }
 
 //export validate
@@ -29,6 +48,11 @@ func validate(platePtr, plateLen, countryPtr, countryLen int32) int32 {
 }
 
 func view(ptr, length int32) []byte {
+	allocsMu.Lock()
+	defer allocsMu.Unlock()
+	if allocs == nil {
+		return nil
+	}
 	b, ok := allocs[ptr]
 	if !ok || length <= 0 {
 		return nil

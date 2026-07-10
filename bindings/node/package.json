@@ -1,0 +1,44 @@
+{
+  "name": "@truejacobg/eu-licence-validator",
+  "version": "0.0.0-dev",
+  "description": "European licence plate validation. Single Go core compiled to WebAssembly, bundled for Node.js.",
+  "license": "MIT",
+  "author": "TrueJacobG",
+  "homepage": "https://github.com/TrueJacobG/eu-licence-validator#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TrueJacobG/eu-licence-validator.git",
+    "directory": "bindings/node"
+  },
+  "bugs": {
+    "url": "https://github.com/TrueJacobG/eu-licence-validator/issues"
+  },
+  "keywords": [
+    "licence",
+    "license",
+    "plate",
+    "european",
+    "eu",
+    "validation",
+    "wasm"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "wasm/core.wasm"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}

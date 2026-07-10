@@ -4,7 +4,7 @@ TINYGO := tinygo
 GO     := go
 NODE   := npm
 PYTHON := python3
-RUBY   := ruby
+RUBY   ?= $(shell for r in ruby /opt/homebrew/opt/ruby/bin/ruby $$HOME/.rbenv/shims/ruby; do command -v $$r >/dev/null 2>&1 && $$r -e 'require "wasmtime"' >/dev/null 2>&1 && { echo $$r; break; }; done)
 MVN    := mvn
 
 CORE_DIR  := core
@@ -12,7 +12,7 @@ WASM_BIN  := $(CORE_DIR)/core.wasm
 
 WASM_DESTS := \
 	bindings/node/wasm \
-	bindings/python/wasm \
+	bindings/python/eu_licence_validator/wasm \
 	bindings/ruby/wasm \
 	bindings/java/src/main/resources
 
@@ -51,8 +51,8 @@ test-python:
 
 test-ruby:
 	@echo ">> Testing Ruby binding..."
-	@if [ -f bindings/ruby/Rakefile ] || [ -f bindings/ruby/*.gemspec ]; then \
-		cd bindings/ruby && $(RUBY) -Ilib -e 'Dir["test/**/*_test.rb"].each { |f| require f }'; \
+	@if ls bindings/ruby/*.gemspec >/dev/null 2>&1; then \
+		cd bindings/ruby && $(RUBY) -Ilib -e 'Dir["test/**/*_test.rb"].each { |f| require File.expand_path(f) }'; \
 	else echo "   (skipped: bindings/ruby not set up)"; fi
 
 test-java:

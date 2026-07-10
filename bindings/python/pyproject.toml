@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eu-licence-validator"
+version = "0.0.0.dev0"
+description = "European licence plate validation. Single Go core compiled to WebAssembly, bundled for Python."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "TrueJacobG" }]
+requires-python = ">=3.9"
+dependencies = ["wasmtime>=14.0.0"]
+keywords = ["licence", "license", "plate", "european", "eu", "validation", "wasm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/TrueJacobG/eu-licence-validator"
+Repository = "https://github.com/TrueJacobG/eu-licence-validator"
+Issues = "https://github.com/TrueJacobG/eu-licence-validator/issues"
+
+[tool.setuptools]
+packages = ["eu_licence_validator"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+eu_licence_validator = ["wasm/core.wasm"]

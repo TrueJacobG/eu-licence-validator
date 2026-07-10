@@ -1,6 +1,7 @@
 # WebAssembly artifacts
 core/core.wasm
 bindings/*/wasm/core.wasm
+bindings/python/eu_licence_validator/wasm/core.wasm
 bindings/java/src/main/resources/core.wasm
 
 # Go
