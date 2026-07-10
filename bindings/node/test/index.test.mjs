@@ -3,7 +3,7 @@ import { strictEqual } from "node:assert";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { isValid } from "../src/index.ts";
+import { isValid } from "../dist/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const cases = JSON.parse(

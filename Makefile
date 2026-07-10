@@ -50,7 +50,7 @@ test-node:
 test-python:
 	@echo ">> Testing Python binding..."
 	@if [ -f bindings/python/pyproject.toml ] || [ -f bindings/python/setup.py ]; then \
-		cd bindings/python && $(PYTHON) -m pytest -q; \
+		cd bindings/python && $(PYTHON) -m pip install -q -e ".[dev]" && $(PYTHON) -m pytest -q; \
 	else echo "   (skipped: bindings/python not set up)"; fi
 
 test-ruby:

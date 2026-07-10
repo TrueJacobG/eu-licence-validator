@@ -20,6 +20,9 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0"]
+
 [project.urls]
 Homepage = "https://github.com/TrueJacobG/eu-licence-validator"
 Repository = "https://github.com/TrueJacobG/eu-licence-validator"

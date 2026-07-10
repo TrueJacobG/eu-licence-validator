@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "node --test",
+    "test": "npm run build && node --test",
     "prepublishOnly": "npm run build"
   },
   "engines": {
