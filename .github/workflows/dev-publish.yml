@@ -57,7 +57,7 @@ jobs:
         run: |
           TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
-            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
 
@@ -91,7 +91,7 @@ jobs:
         run: |
           TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
-            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
@@ -123,7 +123,7 @@ jobs:
         run: |
           TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
-            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
@@ -157,7 +157,7 @@ jobs:
         run: |
           TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
-            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
@@ -194,7 +194,7 @@ jobs:
         run: |
           TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
-            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
