@@ -1,5 +1,5 @@
 module EU
   module LicenceValidator
-    VERSION = "0.0.0"
+    VERSION = "0.1.19"
   end
 end
