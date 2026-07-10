@@ -1,0 +1,312 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TINYGO_VERSION: "0.41.1"
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: echo "version=0.1.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: |
+            core/go.sum
+            bindings/go/go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install TinyGo
+        run: |
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
+
+      - name: Build Wasm
+        run: make build-wasm
+
+      - name: Test all
+        run: make test-all
+
+      - name: Upload core.wasm
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-wasm
+          path: core/core.wasm
+          if-no-files-found: error
+
+  tag-go-modules:
+    name: Tag Go Modules
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Tag Core Module
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          if git rev-parse "core/v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag core/v${VERSION} already exists, skipping"
+            exit 0
+          fi
+          git tag "core/v${VERSION}"
+          git push origin "core/v${VERSION}"
+
+      - name: Update Bindings Dependency
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          cd bindings/go
+          go mod edit -dropreplace=github.com/TrueJacobG/eu-licence-validator/core || true
+          go mod edit -require=github.com/TrueJacobG/eu-licence-validator/core@v${VERSION}
+          GOWORK=off go mod tidy
+
+      - name: Commit and Push go.mod Changes
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          git add bindings/go/go.mod bindings/go/go.sum
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: bump core dependency to v${VERSION} in go.mod"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Tag Bindings Module
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          git pull origin main --ff-only
+          if git rev-parse "bindings/go/v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag bindings/go/v${VERSION} already exists, skipping"
+            exit 0
+          fi
+          git tag "bindings/go/v${VERSION}"
+          git push origin "bindings/go/v${VERSION}"
+
+      - name: Tag Release
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists, skipping"
+            exit 0
+          fi
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+
+  release-node:
+    name: Release → npm (OIDC)
+    needs: [build-and-test, tag-go-modules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+      - name: Ensure npm CLI supports trusted publishing
+        run: npm install -g npm@latest
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: npm ci
+        working-directory: bindings/js
+      - name: Set version
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: npm version ${VERSION} --no-git-tag-version
+        working-directory: bindings/js
+      - name: Skip if version already published
+        working-directory: bindings/js
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: |
+          if npm view "@truejacobg/eu-licence-validator@${VERSION}" >/dev/null 2>&1; then
+            echo "Version ${VERSION} already on npm — skipping publish."
+            echo "skip_publish=true" >> $GITHUB_ENV
+          fi
+      - name: Publish
+        if: env.skip_publish != 'true'
+        working-directory: bindings/js
+        run: npm publish
+
+  release-python:
+    name: Release → PyPI
+    needs: [build-and-test, tag-go-modules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - name: Set version
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: sed -i "s/version = .*/version = \"${VERSION}\"/" pyproject.toml
+        working-directory: bindings/python
+      - run: |
+          python -m pip install --upgrade build
+          python -m build
+        working-directory: bindings/python
+      - run: |
+          python -m pip install --upgrade twine
+          python -m twine upload --disable-progress-bar dist/*
+        working-directory: bindings/python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  release-ruby:
+    name: Release → RubyGems
+    needs: [build-and-test, tag-go-modules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - name: Set version
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: sed -i "s/VERSION = .*/VERSION = \"${VERSION}\"/" lib/eu_licence_validator/version.rb
+        working-directory: bindings/ruby
+      - run: |
+          mkdir -p $HOME/.gem
+          printf -- "---\n:rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+      - run: gem build *.gemspec
+        working-directory: bindings/ruby
+      - run: gem push *.gem
+        working-directory: bindings/ruby
+
+  release-java:
+    name: Release → Maven Central
+    needs: [build-and-test, tag-go-modules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - name: Set version
+        env:
+          VERSION: ${{ needs.build-and-test.outputs.version }}
+        run: mvn -B versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false
+        working-directory: bindings/java
+      - run: mvn -B -DskipTests -Ppublish deploy
+        working-directory: bindings/java
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+  github-release:
+    name: GitHub Release
+    needs: [build-and-test, tag-go-modules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.build-and-test.outputs.version }}
+          generate_release_notes: true
+          files: core/core.wasm
