@@ -70,7 +70,7 @@ jobs:
         run: make test-all
 
       - name: Upload core.wasm
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: core-wasm
           path: core/core.wasm
