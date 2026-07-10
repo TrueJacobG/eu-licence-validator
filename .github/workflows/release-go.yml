@@ -8,6 +8,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -28,34 +31,62 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Normalize version
+        id: ver
+        run: |
+          V="${{ inputs.version }}"
+          # strip leading 'v' if user included it
+          V="${V#v}"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
       # Step 1: Tag and push Core
       - name: Tag Core Module
         run: |
-          git tag core/v${{ inputs.version }}
-          git push origin core/v${{ inputs.version }}
+          VERSION="${{ steps.ver.outputs.version }}"
+          if git rev-parse "core/v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag core/v${VERSION} already exists"
+            exit 1
+          fi
+          git tag "core/v${VERSION}"
+          git push origin "core/v${VERSION}"
 
-      # Step 2: Programmatically update bindings/go/go.mod
+      # Step 2: Update bindings/go/go.mod and generate a clean go.sum.
+      # GOWORK=off ensures go mod tidy fetches the real tag from the proxy
+      # (instead of the local workspace), so go.sum has correct hashes for
+      # external consumers.
       - name: Update Bindings Dependency
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
         run: |
           cd bindings/go
-          # Use go mod commands to cleanly update the requirement path
-          go mod edit -require=github.com/TrueJacobG/eu-licence-validator/core@v${{ inputs.version }}
-          go mod tidy
+          go mod edit -dropreplace=github.com/TrueJacobG/eu-licence-validator/core || true
+          go mod edit -require=github.com/TrueJacobG/eu-licence-validator/core@v${VERSION}
+          GOWORK=off go mod tidy
+          echo "--- Updated go.mod ---"
+          cat go.mod
+          echo "--- Updated go.sum ---"
+          cat go.sum
 
       # Step 3: Commit change back to main branch
       - name: Commit and Push go.mod Changes
         run: |
-          git add bindings/go/go.mod
-          # Check if there are changes to avoid empty commit errors
+          VERSION="${{ steps.ver.outputs.version }}"
+          git add bindings/go/go.mod bindings/go/go.sum
           if ! git diff --cached --quiet; then
-            git commit -m "chore: bump core dependency to v${{ inputs.version }} in go.mod"
+            git commit -m "chore: bump core dependency to v${VERSION} in go.mod"
             git push origin HEAD:main
+          else
+            echo "No changes to commit"
           fi
 
       # Step 4: Tag and push Bindings (targeting the fresh commit)
       - name: Tag Bindings Module
         run: |
-          # Fetch the latest commit we just pushed to make sure tag points to it
-          git pull origin main
-          git tag bindings/go/v${{ inputs.version }}
-          git push origin bindings/go/v${{ inputs.version }}
+          VERSION="${{ steps.ver.outputs.version }}"
+          git pull origin main --ff-only
+          if git rev-parse "bindings/go/v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag bindings/go/v${VERSION} already exists"
+            exit 1
+          fi
+          git tag "bindings/go/v${VERSION}"
+          git push origin "bindings/go/v${VERSION}"
