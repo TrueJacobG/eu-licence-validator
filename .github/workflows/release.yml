@@ -156,7 +156,7 @@ jobs:
           git push origin "v${VERSION}"
 
   release-node:
-    name: Release → npm (Trusted Publishing)
+    name: Release → npm
     needs: [build-and-test, go-release]
     runs-on: ubuntu-latest
     timeout-minutes: 30

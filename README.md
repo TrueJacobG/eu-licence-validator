@@ -50,7 +50,6 @@ More countries are tracked in [CONTRIBUTING.md](#) — contributions welcome.
 
 ```bash
 npm install @truejacobg/eu-licence-validator
-# Deno: import via "npm:@truejacobg/eu-licence-validator"
 ```
 
 **Python**
@@ -69,7 +68,7 @@ gem install eu-licence-validator
 
 ```xml
 <dependency>
-  <groupId>com.github.truejacobg</groupId>
+  <groupId>io.github.truejacobg</groupId>
   <artifactId>eu-licence-validator</artifactId>
   <version>VERSION</version>
 </dependency>
