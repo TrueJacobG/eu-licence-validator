@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: cicd-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   TINYGO_VERSION: "0.41.1"
@@ -23,6 +23,7 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       wasm-artifact: core-wasm
     steps:
@@ -80,6 +81,7 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -94,11 +96,11 @@ jobs:
           path: core
       - run: make distribute-wasm
       - run: npm ci
-        working-directory: bindings/node
+        working-directory: bindings/js
       - run: npm version 0.0.${{ github.run_number }} --no-git-tag-version
-        working-directory: bindings/node
+        working-directory: bindings/js
       - run: npm publish --tag dev
-        working-directory: bindings/node
+        working-directory: bindings/js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -107,6 +109,7 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -138,6 +141,7 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -166,6 +170,7 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -195,6 +200,7 @@ jobs:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -208,9 +214,9 @@ jobs:
           path: core
       - run: make distribute-wasm
       - run: npm ci
-        working-directory: bindings/node
+        working-directory: bindings/js
       - run: npm publish
-        working-directory: bindings/node
+        working-directory: bindings/js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -219,6 +225,7 @@ jobs:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -247,6 +254,7 @@ jobs:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -272,6 +280,7 @@ jobs:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -301,6 +310,7 @@ jobs:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4

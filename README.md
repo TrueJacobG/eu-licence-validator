@@ -13,31 +13,31 @@ language package, so end users just call a normal function — they never know t
 are running Wasm. The native Go package imports the core logic directly (no
 Wasm) for maximum performance.
 
-| Language | Package | Distribution |
-| --- | --- | --- |
-| Node.js / TypeScript | `@truejacobg/eu-licence-validator` | npm / GitHub Packages |
-| Python | `eu-licence-validator` | PyPI |
-| Ruby | `eu-licence-validator` | RubyGems |
-| Java | `com.github.truejacobg:eu-licence-validator` | Maven Central |
-| Go | `github.com/TrueJacobG/eu-licence-validator/bindings/go` | Go module |
+| Language                | Package                                                  | Distribution          |
+| ----------------------- | -------------------------------------------------------- | --------------------- |
+| TypeScript / JavaScript | `@truejacobg/eu-licence-validator` | npm / GitHub Packages |
+| Python                  | `eu-licence-validator`                                   | PyPI                  |
+| Ruby                    | `eu-licence-validator`                                   | RubyGems              |
+| Java                    | `com.github.truejacobg:eu-licence-validator`             | Maven Central         |
+| Go                      | `github.com/TrueJacobG/eu-licence-validator/bindings/go` | Go module             |
 
 > The bindings are landing in Phase 3. Until the first public release, the
 > packages above may not yet exist on the public registries.
 
 ## Supported countries
 
-| Code | Country | Status |
-| --- | --- | --- |
-| `PL` | Poland | ✅ |
-| `DE` | Germany | ✅ |
-| `FR` | France (SIV) | ✅ |
-| `IT` | Italy | ✅ |
-| `ES` | Spain | ✅ |
-| `NL` | Netherlands | ✅ |
-| `BE` | Belgium | ✅ |
-| `PT` | Portugal | ✅ |
-| `AT` | Austria | ✅ |
-| `CH` | Switzerland | ✅ |
+| Code | Country      | Status |
+| ---- | ------------ | ------ |
+| `PL` | Poland       | ✅     |
+| `DE` | Germany      | ✅     |
+| `FR` | France (SIV) | ✅     |
+| `IT` | Italy        | ✅     |
+| `ES` | Spain        | ✅     |
+| `NL` | Netherlands  | ✅     |
+| `BE` | Belgium      | ✅     |
+| `PT` | Portugal     | ✅     |
+| `AT` | Austria      | ✅     |
+| `CH` | Switzerland  | ✅     |
 
 More countries are tracked in [CONTRIBUTING.md](#) — contributions welcome.
 
@@ -46,24 +46,27 @@ More countries are tracked in [CONTRIBUTING.md](#) — contributions welcome.
 > Replace the version placeholder with the published version once the first
 > release is out.
 
-**Node.js / TypeScript**
+**TypeScript / JavaScript** (Node, Bun, Deno, Vite, browsers)
+
 ```bash
 npm install @truejacobg/eu-licence-validator
-# or the public name once published:
-# npm install eu-licence-validator
+# Deno: import via "npm:@truejacobg/eu-licence-validator"
 ```
 
 **Python**
+
 ```bash
 pip install eu-licence-validator
 ```
 
 **Ruby**
+
 ```bash
 gem install eu-licence-validator
 ```
 
 **Java (Maven)**
+
 ```xml
 <dependency>
   <groupId>com.github.truejacobg</groupId>
@@ -73,6 +76,7 @@ gem install eu-licence-validator
 ```
 
 **Go**
+
 ```bash
 go get github.com/TrueJacobG/eu-licence-validator/bindings/go
 ```
@@ -82,7 +86,17 @@ go get github.com/TrueJacobG/eu-licence-validator/bindings/go
 Every binding exposes the same API:
 
 ```ts
-isValid(plate: string, countryCode: string): boolean
+// TypeScript / JavaScript (Node, Bun, Deno, Vite, browsers)
+import { init, isValid } from "@truejacobg/eu-licence-validator";
+
+await init(); // initialize the Wasm runtime once
+isValid("WPI 1234X", "PL");  // true  (sync after init)
+isValid("AA-123-SS", "FR");  // false
+isValid("B-AB 1234", "DE");  // true
+
+// Types are included:
+// function isValid(plate: string, countryCode: string): boolean
+// function init(): Promise<void>
 ```
 
 ```python
@@ -93,7 +107,8 @@ is_valid("AA-123-SS", "FR")   # False
 is_valid("B-AB 1234", "DE")  # True
 ```
 
-See [`examples/`](examples) for a runnable example in each language.
+See [`examples/`](examples) for a runnable example in each language, including
+Deno and Vite/browser setups.
 
 ## How it works
 
@@ -105,8 +120,8 @@ See [`examples/`](examples) for a runnable example in each language.
                        (TinyGo, WASI)  │  (direct import)
         ┌──────────────┬──────────────┴───────────────┬──────────────┐
         ▼              ▼                               ▼              ▼
-   node (wasm)    python (wasm)     ruby (wasm)   java (wasm)    go (native)
-   bundled       bundled           bundled        bundled        imports core
+   js (wasm)      python (wasm)     ruby (wasm)   java (wasm)    go (native)
+   bundled        bundled           bundled        bundled        imports core
    core.wasm     core.wasm         core.wasm      core.wasm      (no Wasm)
 ```
 
@@ -120,14 +135,14 @@ See [`examples/`](examples) for a runnable example in each language.
 
 ### Prerequisites
 
-| Tool | Version |
-| --- | --- |
-| Go | 1.22+ |
-| [TinyGo](https://tinygo.org) | latest |
-| Node.js | 20+ |
-| Python | 3.10+ |
-| Ruby | 3.0+ |
-| Java (Maven) | 17+ |
+| Tool                         | Version |
+| ---------------------------- | ------- |
+| Go                           | 1.22+   |
+| [TinyGo](https://tinygo.org) | latest  |
+| Node.js                      | 20+     |
+| Python                       | 3.10+   |
+| Ruby                         | 3.0+    |
+| Java (Maven)                 | 17+     |
 
 ### Build & test
 
@@ -151,10 +166,14 @@ eu-licence-validator/
 ├── Makefile
 ├── test_cases.json          # unified test data for every language
 ├── core/                     # Go + WebAssembly core
-├── bindings/                # node · python · ruby · java · go
+├── bindings/                # js · python · ruby · java · go
 ├── examples/                 # one runnable example per language
 └── .github/workflows/        # ci · dev-publish · release
 ```
+
+## Other
+
+[https://test.pypi.org/project/eu-licence-validator/](https://test.pypi.org/project/eu-licence-validator/)
 
 ## Contributing
 

@@ -9,8 +9,8 @@ core/coverage.out
 bindings/go/coverage.out
 
 # Node
-bindings/node/node_modules/
-bindings/node/*.tgz
+bindings/js/node_modules/
+bindings/js/*.tgz
 
 # Python
 bindings/python/__pycache__/

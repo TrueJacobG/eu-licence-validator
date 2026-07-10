@@ -3,7 +3,7 @@ import { strictEqual } from "node:assert";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { isValid } from "../dist/index.js";
+import { init, isValid } from "../dist/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const cases = JSON.parse(
@@ -11,8 +11,9 @@ const cases = JSON.parse(
 );
 
 test("isValid against test_cases.json", async () => {
+  await init();
   for (const { plate, country, expected } of cases) {
-    const got = await isValid(plate, country);
+    const got = isValid(plate, country);
     strictEqual(
       got,
       expected,

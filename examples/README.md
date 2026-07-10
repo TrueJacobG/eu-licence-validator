@@ -16,8 +16,10 @@ isValid(plate, countryCode) -> bool
 
 | Language | Run |
 | --- | --- |
+| TS / JS (Node, Bun) | `node examples/js/example.mjs` or `bun examples/js/example.mjs` |
+| TS / JS (Deno) | `deno run examples/js/example.deno.ts` |
+| TS / JS (Vite/browser) | see `examples/js/example.vite.ts` |
 | Python | `python examples/python/example.py` |
-| Node.js | `node examples/node/example.js` |
 | Go | `go run examples/go/example.go` |
 | Ruby | `ruby examples/ruby/example.rb` |
 | Java | see `examples/java/` |
@@ -25,11 +27,13 @@ isValid(plate, countryCode) -> bool
 ## Install the package first
 
 ```bash
+# TypeScript / JavaScript (Node, Bun, Deno, Vite, browsers)
+npm install @truejacobg/eu-licence-validator
+# Deno: no install needed, import via npm: prefix
+# Bun: npm install @truejacobg/eu-licence-validator
+
 # Python
 pip install eu-licence-validator
-
-# Node.js
-npm install @truejacobg/eu-licence-validator
 
 # Ruby
 gem install eu-licence-validator

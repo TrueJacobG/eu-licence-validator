@@ -11,7 +11,7 @@ CORE_DIR  := core
 WASM_BIN  := $(CORE_DIR)/core.wasm
 
 WASM_DESTS := \
-	bindings/node/wasm \
+	bindings/js/wasm \
 	bindings/python/eu_licence_validator/wasm \
 	bindings/ruby/wasm \
 	bindings/java/src/main/resources
@@ -34,18 +34,18 @@ distribute-wasm:
 		echo "   copied -> $$dir/core.wasm"; \
 	done
 
-test-all: test-core test-node test-python test-ruby test-java test-go
+test-all: test-core test-js test-python test-ruby test-java test-go
 	@echo ">> All language test suites complete."
 
 test-core:
 	@echo ">> Testing Go core..."
 	cd $(CORE_DIR) && $(GO) test ./...
 
-test-node:
-	@echo ">> Testing Node.js binding..."
-	@if [ -f bindings/node/package.json ]; then \
-		cd bindings/node && $(NODE) ci && $(NODE) test; \
-	else echo "   (skipped: bindings/node not set up)"; fi
+test-js:
+	@echo ">> Testing JavaScript binding..."
+	@if [ -f bindings/js/package.json ]; then \
+		cd bindings/js && $(NODE) ci && $(NODE) test; \
+	else echo "   (skipped: bindings/js not set up)"; fi
 
 test-python:
 	@echo ">> Testing Python binding..."
