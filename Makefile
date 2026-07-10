@@ -16,13 +16,17 @@ WASM_DESTS := \
 	bindings/ruby/wasm \
 	bindings/java/src/main/resources
 
-.PHONY: all build-wasm test-all test-core test-node test-python test-ruby test-java test-go clean
+.PHONY: all build-wasm distribute-wasm test-all test-core test-node test-python test-ruby test-java test-go clean
 
 all: build-wasm
 
-build-wasm:
-	@echo ">> Building WebAssembly core with TinyGo..."
-	cd $(CORE_DIR) && $(TINYGO) build -target wasi -no-debug -o core.wasm .
+build-wasm: distribute-wasm
+
+distribute-wasm:
+	@if [ ! -f $(WASM_BIN) ]; then \
+		echo ">> $(WASM_BIN) not found, building with TinyGo..."; \
+		cd $(CORE_DIR) && $(TINYGO) build -target wasi -no-debug -o core.wasm .; \
+	fi
 	@echo ">> Distributing core.wasm to language bindings..."
 	@for dir in $(WASM_DESTS); do \
 		mkdir -p $$dir; \

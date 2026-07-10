@@ -1,37 +1,46 @@
-name: CI
+name: CI / CD
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  packages: write
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: cicd-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  TINYGO_VERSION: "0.41.1"
 
 jobs:
   build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
+    outputs:
+      wasm-artifact: core-wasm
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           cache-dependency-path: core/go.sum
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -41,27 +50,17 @@ jobs:
           ruby-version: "3.2"
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Install TinyGo
         run: |
-          TINYGO_VERSION=0.41.1
           curl -L -o /tmp/tinygo.tar.gz \
             https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
           echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
-
-      - name: Verify
-        run: |
-          go version
-          tinygo version
-          node --version
-          python3 --version
-          ruby --version
-          java --version
 
       - name: Build Wasm
         run: make build-wasm
@@ -69,12 +68,237 @@ jobs:
       - name: Test all
         run: make test-all
 
-      - name: Upload core.wasm artifact
+      - name: Upload core.wasm
         uses: actions/upload-artifact@v4
         with:
           name: core-wasm
-          path: |
-            core/core.wasm
-            bindings/*/wasm/core.wasm
-            bindings/java/src/main/resources/core.wasm
+          path: core/core.wasm
           if-no-files-found: error
+
+  dev-publish-node:
+    name: Dev → npm
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: https://npm.pkg.github.com
+          scope: "@truejacobg"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: npm ci
+        working-directory: bindings/node
+      - run: npm version 0.0.0-dev.${{ github.run_number }} --no-git-tag-version
+        working-directory: bindings/node
+      - run: npm publish --tag dev
+        working-directory: bindings/node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dev-publish-python:
+    name: Dev → TestPyPI
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: |
+          python -m pip install --upgrade build
+          python -m build
+        working-directory: bindings/python
+      - run: |
+          python -m pip install --upgrade twine
+          python -m twine upload --repository testpypi --disable-progress-bar dist/*
+        working-directory: bindings/python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_TOKEN }}
+
+  dev-publish-ruby:
+    name: Dev → Ruby GitHub Packages
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: |
+          mkdir -p $HOME/.gem
+          printf -- "---\n:github: Bearer %s\n" "${{ secrets.GITHUB_TOKEN }}" > $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+      - run: gem build *.gemspec
+        working-directory: bindings/ruby
+      - run: gem push --key github --host https://rubygems.pkg.github.com/TrueJacobG *.gem
+        working-directory: bindings/ruby
+
+  dev-publish-java:
+    name: Dev → Maven GitHub Packages
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          server-id: github
+          server-username: GITHUB_USERNAME
+          server-password: GITHUB_TOKEN
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: mvn -B -DskipTests deploy
+        working-directory: bindings/java
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-publish-node:
+    name: Release → npm
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: npm ci
+        working-directory: bindings/node
+      - run: npm publish
+        working-directory: bindings/node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  release-publish-python:
+    name: Release → PyPI
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: |
+          python -m pip install --upgrade build
+          python -m build
+        working-directory: bindings/python
+      - run: |
+          python -m pip install --upgrade twine
+          python -m twine upload --disable-progress-bar dist/*
+        working-directory: bindings/python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  release-publish-ruby:
+    name: Release → RubyGems
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: |
+          mkdir -p $HOME/.gem
+          printf -- "---\n:rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+      - run: gem build *.gemspec
+        working-directory: bindings/ruby
+      - run: gem push *.gem
+        working-directory: bindings/ruby
+
+  release-publish-java:
+    name: Release → Maven Central
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - run: make distribute-wasm
+      - run: mvn -B -DskipTests -Ppublish deploy
+        working-directory: bindings/java
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+  github-release:
+    name: GitHub Release
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-wasm
+          path: core
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: core/core.wasm
