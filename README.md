@@ -31,6 +31,13 @@ Wasm) for maximum performance.
 | `PL` | Poland | ✅ |
 | `DE` | Germany | ✅ |
 | `FR` | France (SIV) | ✅ |
+| `IT` | Italy | ✅ |
+| `ES` | Spain | ✅ |
+| `NL` | Netherlands | ✅ |
+| `BE` | Belgium | ✅ |
+| `PT` | Portugal | ✅ |
+| `AT` | Austria | ✅ |
+| `CH` | Switzerland | ✅ |
 
 More countries are tracked in [CONTRIBUTING.md](#) — contributions welcome.
 
