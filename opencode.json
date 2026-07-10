@@ -1,0 +1,54 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["github:TrueJacobG/hercules#hercules-with-opencode"],
+  "instructions": [".cursorrules", ".cursor/rules/api.mdc", ".cursor/rules/mobile.mdc", ".opencode/AGENTS.md"],
+  "agent": {
+    "plan": {
+      "description": "Parses specifications and constructs deep architectural plans.",
+      "model": "z-ai/glm-5.2",
+      "temperature": 0.1
+    },
+    "build": {
+      "description": "Executes the actual multi-file code writing and file editing steps across Java and React Native.",
+      "model": "qwen/qwen3-coder-plus",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "general": {
+      "description": "Handles daily iterative task execution, terminal debugging, and local LSP diagnostics.",
+      "model": "qwen/qwen3-coder-plus"
+    },
+    "review": {
+      "description": "Regenerates OpenAPI types, runs code coverage checks, and updates documents inside the Obsidian vault",
+      "model": "z-ai/glm-5.2"
+    },
+    "hercules": {
+      "description": "Executes Hercules commands for code analysis, refactoring, and optimization.",
+      "model": "z-ai/glm-5.2"
+    },
+    "cheapCoder": {
+      "description": "Executes code generation tasks using the cheapCoder model.",
+      "model": "openai/gpt-5-mini"
+    }
+  },
+  "permission": {
+    "edit": "allow",
+    "read": {
+      "*": "allow"
+    },
+    "glob": {
+      "*": "allow"
+    },
+    "bash": {
+      "git commit*": "deny",
+      "git push*": "deny",
+      "docker system prune*": "deny",
+      "npm publish*": "deny",
+      "mvn deploy*": "deny",
+      "gradlew publish*": "deny",
+      "*": "allow"
+    }
+  }
+}
