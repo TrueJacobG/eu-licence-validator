@@ -48,7 +48,12 @@ jobs:
           java-version: "17"
 
       - name: Install TinyGo
-        run: curl -sSL https://tinygo.org/get | bash
+        run: |
+          TINYGO_VERSION=0.41.1
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
 
       - name: Build and test
         run: make build-wasm && make test-all
@@ -76,7 +81,12 @@ jobs:
           node-version: "20"
           registry-url: https://registry.npmjs.org
       - name: Install TinyGo
-        run: curl -sSL https://tinygo.org/get | bash
+        run: |
+          TINYGO_VERSION=0.41.1
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
         run: make build-wasm
       - name: Install deps
@@ -100,7 +110,12 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install TinyGo
-        run: curl -sSL https://tinygo.org/get | bash
+        run: |
+          TINYGO_VERSION=0.41.1
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
         run: make build-wasm
       - name: Build package
@@ -129,7 +144,12 @@ jobs:
         with:
           ruby-version: "3.2"
       - name: Install TinyGo
-        run: curl -sSL https://tinygo.org/get | bash
+        run: |
+          TINYGO_VERSION=0.41.1
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
         run: make build-wasm
       - name: Publish to RubyGems
@@ -159,7 +179,12 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Install TinyGo
-        run: curl -sSL https://tinygo.org/get | bash
+        run: |
+          TINYGO_VERSION=0.41.1
+          curl -L -o /tmp/tinygo.tar.gz \
+            https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo_${TINYGO_VERSION}_amd64.tar.gz
+          sudo tar -C /usr/local -xzf /tmp/tinygo.tar.gz
+          echo "/usr/local/tinygo/bin" >> $GITHUB_PATH
       - name: Build Wasm
         run: make build-wasm
       - name: Publish to Maven Central
