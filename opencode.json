@@ -1,7 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": ["github:TrueJacobG/hercules#hercules-with-opencode"],
-  "instructions": [".cursorrules", ".cursor/rules/api.mdc", ".cursor/rules/mobile.mdc", ".opencode/AGENTS.md"],
+  "instructions": [
+    ".cursorrules",
+    ".cursor/rules/api.mdc",
+    ".cursor/rules/mobile.mdc",
+    ".opencode/AGENTS.md"
+  ],
   "agent": {
     "plan": {
       "description": "Parses specifications and constructs deep architectural plans.",
