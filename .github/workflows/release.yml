@@ -156,7 +156,7 @@ jobs:
           git push origin "v${VERSION}"
 
   release-node:
-    name: Release → npm (OIDC)
+    name: Release → npm (Trusted Publishing)
     needs: [build-and-test, tag-go-modules]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -191,7 +191,7 @@ jobs:
             echo "Version ${VERSION} already on npm — skipping publish."
             echo "skip_publish=true" >> $GITHUB_ENV
           fi
-      - name: Publish
+      - name: Publish (Trusted Publishing / OIDC)
         if: env.skip_publish != 'true'
         working-directory: bindings/js
         run: npm publish --provenance
@@ -230,7 +230,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   release-ruby:
-    name: Release → RubyGems (OIDC)
+    name: Release → RubyGems (Trusted Publishing)
     needs: [build-and-test, tag-go-modules]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -243,6 +243,8 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: bindings/ruby
       - uses: actions/download-artifact@v4
         with:
           name: core-wasm
@@ -253,7 +255,7 @@ jobs:
           VERSION: ${{ needs.build-and-test.outputs.version }}
         run: sed -i "s/VERSION = .*/VERSION = \"${VERSION}\"/" lib/eu_licence_validator/version.rb
         working-directory: bindings/ruby
-      - uses: rubygems/configure-rubygems-credentials@v1
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
       - run: gem build *.gemspec
         working-directory: bindings/ruby
       - run: gem push *.gem

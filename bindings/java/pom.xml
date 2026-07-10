@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.github.truejacobg</groupId>
+  <groupId>io.github.truejacobg</groupId>
   <artifactId>eu-licence-validator</artifactId>
   <version>0.0.0</version>
   <packaging>jar</packaging>

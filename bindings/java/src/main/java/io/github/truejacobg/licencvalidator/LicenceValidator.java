@@ -1,4 +1,4 @@
-package com.github.truejacobg.licencvalidator;
+package io.github.truejacobg.licencvalidator;
 
 import com.dylibso.chicory.runtime.HostFunction;
 import com.dylibso.chicory.runtime.ImportValues;

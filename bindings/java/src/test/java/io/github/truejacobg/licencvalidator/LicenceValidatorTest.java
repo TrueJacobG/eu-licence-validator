@@ -1,4 +1,4 @@
-package com.github.truejacobg.licencvalidator;
+package io.github.truejacobg.licencvalidator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
