@@ -1,3 +1,3 @@
-module github.com/eu-licence-validator/core
+module github.com/TrueJacobG/eu-licence-validator/core
 
 go 1.22
