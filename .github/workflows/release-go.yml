@@ -1,0 +1,61 @@
+name: Release Go Modules
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.0.3, without the v prefix)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Step 1: Tag and push Core
+      - name: Tag Core Module
+        run: |
+          git tag core/v${{ inputs.version }}
+          git push origin core/v${{ inputs.version }}
+
+      # Step 2: Programmatically update bindings/go/go.mod
+      - name: Update Bindings Dependency
+        run: |
+          cd bindings/go
+          # Use go mod commands to cleanly update the requirement path
+          go mod edit -require=github.com/TrueJacobG/eu-licence-validator/core@v${{ inputs.version }}
+          go mod tidy
+
+      # Step 3: Commit change back to main branch
+      - name: Commit and Push go.mod Changes
+        run: |
+          git add bindings/go/go.mod
+          # Check if there are changes to avoid empty commit errors
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: bump core dependency to v${{ inputs.version }} in go.mod"
+            git push origin HEAD:main
+          fi
+
+      # Step 4: Tag and push Bindings (targeting the fresh commit)
+      - name: Tag Bindings Module
+        run: |
+          # Fetch the latest commit we just pushed to make sure tag points to it
+          git pull origin main
+          git tag bindings/go/v${{ inputs.version }}
+          git push origin bindings/go/v${{ inputs.version }}
