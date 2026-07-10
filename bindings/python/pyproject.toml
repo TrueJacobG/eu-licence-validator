@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eu-licence-validator"
-version = "0.0.0.dev0"
+version = "0.0.0"
 description = "European licence plate validation. Single Go core compiled to WebAssembly, bundled for Python."
 readme = "README.md"
 license = { text = "MIT" }

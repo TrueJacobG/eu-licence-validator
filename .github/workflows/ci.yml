@@ -95,7 +95,7 @@ jobs:
       - run: make distribute-wasm
       - run: npm ci
         working-directory: bindings/node
-      - run: npm version 0.0.0-dev.${{ github.run_number }} --no-git-tag-version
+      - run: npm version 0.0.${{ github.run_number }} --no-git-tag-version
         working-directory: bindings/node
       - run: npm publish --tag dev
         working-directory: bindings/node
@@ -105,7 +105,7 @@ jobs:
   dev-publish-python:
     name: Dev → TestPyPI
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_DEV_PYTHON == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -118,6 +118,9 @@ jobs:
           name: core-wasm
           path: core
       - run: make distribute-wasm
+      - name: Set dev version
+        run: sed -i 's/version = .*/version = "0.0.${{ github.run_number }}"/' pyproject.toml
+        working-directory: bindings/python
       - run: |
           python -m pip install --upgrade build
           python -m build
@@ -146,6 +149,9 @@ jobs:
           name: core-wasm
           path: core
       - run: make distribute-wasm
+      - name: Set dev version
+        run: sed -i 's/VERSION = .*/VERSION = "0.0.${{ github.run_number }}"/' lib/eu_licence_validator/version.rb
+        working-directory: bindings/ruby
       - run: |
           mkdir -p $HOME/.gem
           printf -- "---\n:github: Bearer %s\n" "${{ secrets.GITHUB_TOKEN }}" > $HOME/.gem/credentials
@@ -175,6 +181,9 @@ jobs:
           name: core-wasm
           path: core
       - run: make distribute-wasm
+      - name: Set dev version
+        run: mvn -B versions:set -DnewVersion=0.0.${{ github.run_number }} -DgenerateBackupPoms=false
+        working-directory: bindings/java
       - run: mvn -B -DskipTests deploy
         working-directory: bindings/java
         env:
