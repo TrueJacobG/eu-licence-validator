@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a new country, rule, or improvement
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of feature?
+      options:
+        - New country support
+        - Tighten/fix an existing country rule
+        - New language binding
+        - API / DX improvement
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country code (if applicable)
+      placeholder: "ES"
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is currently missing or wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Format reference, regex idea, or API sketch.
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example plates
+      description: Plates and whether they should be valid or invalid.
+      placeholder: |
+        - "1234 ABC" -> valid
+        - "ABC 123" -> invalid

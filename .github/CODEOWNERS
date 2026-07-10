@@ -1,0 +1,8 @@
+# Default owner for the whole repository.
+*   @TrueJacobG
+
+# Sensitive areas — request explicit review from the owner.
+/.github/        @TrueJacobG
+/Makefile        @TrueJacobG
+/core/           @TrueJacobG
+/test_cases.json @TrueJacobG

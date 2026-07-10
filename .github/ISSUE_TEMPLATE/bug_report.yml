@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a plate that validates incorrectly
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in the details below.
+        For security issues, use the Security tab instead of this form.
+  - type: input
+    id: plate
+    attributes:
+      label: Plate
+      description: The licence plate string you tested.
+      placeholder: "WPI 1234X"
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country code
+      description: ISO 3166-1 alpha-2 code.
+      placeholder: "PL"
+    validations:
+      required: true
+  - type: dropdown
+    id: expected
+    attributes:
+      label: Expected result
+      options:
+        - valid
+        - invalid
+    validations:
+      required: true
+  - type: dropdown
+    id: actual
+    attributes:
+      label: Actual result
+      options:
+        - valid
+        - invalid
+    validations:
+      required: true
+  - type: input
+    id: binding
+    attributes:
+      label: Language binding + version
+      placeholder: "python eu-licence-validator 0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal code or steps to reproduce.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to official plate format references are very welcome.

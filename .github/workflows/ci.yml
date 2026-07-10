@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: core/go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install TinyGo
+        run: curl -sSL https://tinygo.org/get | bash
+
+      - name: Verify
+        run: |
+          go version
+          tinygo version
+          node --version
+          python3 --version
+          ruby --version
+          java --version
+
+      - name: Build Wasm
+        run: make build-wasm
+
+      - name: Test all
+        run: make test-all
+
+      - name: Upload core.wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-wasm
+          path: |
+            core/core.wasm
+            bindings/*/wasm/core.wasm
+            bindings/java/src/main/resources/core.wasm
+          if-no-files-found: error
