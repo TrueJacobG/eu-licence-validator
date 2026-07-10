@@ -44,7 +44,7 @@ test-core:
 test-node:
 	@echo ">> Testing Node.js binding..."
 	@if [ -f bindings/node/package.json ]; then \
-		cd bindings/node && $(NODE) test; \
+		cd bindings/node && $(NODE) ci && $(NODE) test; \
 	else echo "   (skipped: bindings/node not set up)"; fi
 
 test-python:
