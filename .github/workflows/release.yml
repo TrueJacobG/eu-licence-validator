@@ -157,7 +157,7 @@ jobs:
 
   release-node:
     name: Release → npm (Trusted Publishing)
-    needs: [build-and-test, tag-go-modules]
+    needs: [build-and-test, go-release]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
@@ -170,7 +170,6 @@ jobs:
         with:
           node-version: "24"
           registry-url: https://registry.npmjs.org
-          package-manager-cache: false
       - uses: actions/download-artifact@v4
         with:
           name: core-wasm
