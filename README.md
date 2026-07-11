@@ -98,37 +98,29 @@ isValid("B-AB 1234", "DE"); // true
 // function init(): Promise<void>
 ```
 
-```python
-from eu_licence_validator import is_valid
-
-is_valid("WPI 1234X", "PL")   # True
-is_valid("AA-123-SS", "FR")   # False
-is_valid("B-AB 1234", "DE")  # True
-```
-
-See [`examples/`](examples) for a runnable example in each language, including
-Deno and Vite/browser setups.
+See [`examples/`](examples) for a runnable example in each language
 
 ## How it works
 
-```
-                ┌─────────────────────────────────────────────┐
-                │              core/ (Go logic)                │
-                │   validator.go  ·  regex per EU country      │
-                └──────────────────────┬──────────────────────┘
-                       (TinyGo, WASI)  │  (direct import)
-        ┌──────────────┬──────────────┴───────────────┬──────────────┐
-        ▼              ▼                               ▼              ▼
-   js (wasm)      python (wasm)     ruby (wasm)   java (wasm)    go (native)
-   bundled        bundled           bundled        bundled        imports core
-   core.wasm     core.wasm         core.wasm      core.wasm      (no Wasm)
-```
+```mermaid
+flowchart TD
+    logic["<b>core/validator.go</b><br/><i>Business logic — pure Go, no I/O</i><br/>regex per EU country"]
+    core["<b>core/main.go</b><br/><i>WASI exports: alloc · validate · dealloc</i><br/>compiled by TinyGo → core.wasm"]
 
-- `core/validator.go` — the real validation logic (pure Go, no I/O).
-- `core/main.go` — TinyGo WASI exports: `alloc`, `validate`, `dealloc`.
-- Each binding instantiates `core.wasm`, calls `_start` once, then uses the
-  `alloc` → write bytes → `validate` → `dealloc` protocol.
-- The Go binding skips Wasm entirely and calls `IsValid(...)` directly.
+    logic --> core
+
+    core -- "bundled core.wasm" --> JS["<b>TypeScript / JavaScript</b><br/>@truejacobg/eu-licence-validator"]
+    core -- "bundled core.wasm" --> PY["<b>Python</b><br/>eu-licence-validator"]
+    core -- "bundled core.wasm" --> RB["<b>Ruby</b><br/>eu-licence-validator"]
+    core -- "bundled core.wasm" --> JV["<b>Java</b><br/>io.github.truejacobg:eu-licence-validator"]
+    core -- "direct import (no Wasm)" --> GO["<b>Go</b><br/>github.com/TrueJacobG/eu-licence-validator/bindings/go"]
+
+    click JS "https://www.npmjs.com/package/@truejacobg/eu-licence-validator" "npm — npmjs.com"
+    click PY "https://pypi.org/project/eu-licence-validator/" "PyPI — pypi.org"
+    click RB "https://rubygems.org/gems/eu-licence-validator" "RubyGems — rubygems.org"
+    click JV "https://central.sonatype.com/artifact/io.github.truejacobg/eu-licence-validator" "Maven Central"
+    click GO "https://pkg.go.dev/github.com/TrueJacobG/eu-licence-validator/bindings/go" "pkg.go.dev"
+```
 
 ## Development
 
@@ -169,10 +161,6 @@ eu-licence-validator/
 ├── examples/                 # one runnable example per language
 └── .github/workflows/        # ci · dev-publish · release
 ```
-
-## Python - Pypi
-
-[pypi](https://pypi.org/project/eu-licence-validator/)
 
 ## Contributing
 
