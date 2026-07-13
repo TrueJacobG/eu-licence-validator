@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Portugal (`PT`), Austria (`AT`), and Switzerland (`CH`).
 - TinyGo WASI WebAssembly exports (`alloc`, `validate`, `dealloc`) in
   `core/main.go` with lazy-initialized memory registry (works without `_start`).
-- Unified test data in `test_cases.json` (68 cases), consumed by every language
-  binding's test suite.
+- Unified test data in `test_cases.json` (247 cases, 191 for Poland), consumed
+  by every language binding's test suite.
 - `Makefile` with `build-wasm`, `distribute-wasm`, `test-all`, `test-core`,
   `test-js`, `test-python`, `test-ruby`, `test-java`, `test-go`, and `clean`
   targets.
@@ -39,8 +39,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.editorconfig` and `.gitattributes` (LF normalization, binary wasm handling).
 
 ### Changed
-- Tightened PL rules: validates voivodeship first letter, enforces 4-5 char
-  sequence with at least 1 digit.
+- Split per-country validation logic into separate files (`poland.go`,
+  `germany.go`, `france.go`, etc.) for easier review and extension; shared
+  helpers and the dispatch map remain in `validator.go`.
+- Comprehensive PL validation: all plate types (standard, reduced, temporary,
+  individual, vintage, diplomatic, military, service, professional), all zasoby
+  formats with zero restrictions, forbidden-letter enforcement (B/D/I/O/Z
+  rejected in vehicle identifier), complete powiat code lookup (~450 codes
+  sourced from Wikisource), and 191 PL test cases.
+  - Fixed voivodeship map: removed `H` (not a voivodeship — prefixes service
+    plates), added secondary letters `A I J M V X Y`.
+  - Enforces Wikipedia-specified zero rules per zasób (e.g. leading-digit
+    cannot be 0 in some formats, trailing-digit cannot be 0 in others).
+  - Rejects `XYZ 1234` (explicitly not used per regulation to avoid conflict
+    with the pre-2000 system).
 - Tightened DE rules: enforces max 8 chars (without separators), requires
   district + middle letters + 1-4 digits + optional E/H suffix.
 - Tightened FR rules: excludes I/O/U from both letter groups, blocks SS and WW.
