@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "wasmtime", "~> 46.0"
+  spec.add_dependency "wasmtime", ">= 46", "< 48"
 
   spec.metadata = {
     "homepage_uri" => spec.homepage,
